@@ -1,5 +1,9 @@
 plugins {
     kotlin("jvm") version "1.9.21"
+    application
+}
+application {
+    mainClass.set("MainKt")
 }
 
 group = "org.example"
@@ -11,6 +15,7 @@ repositories {
 
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
+    implementation("mysql:mysql-connector-java:8.0.29")
 }
 
 tasks.test {
