@@ -5,7 +5,7 @@ import java.util.*
 class Visitor(val visitor: User, val restaurant: Restaurant) {
     fun addDish(): Boolean {
         try {
-            val orders = restaurant.getOrdersByStatus(visitor.getIDByUsername(visitor.userName), "Pending")
+            val orders = restaurant.getOrdersByStatus(visitor.getIDByUsername(visitor.userName), "Готовится")
             if (orders.isEmpty()) {
                 println(coloredMessage("\nYou dont have any pending orders.", ConsoleColor.CYAN))
                 return false
