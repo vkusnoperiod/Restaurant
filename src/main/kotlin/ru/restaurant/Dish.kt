@@ -1,3 +1,5 @@
+package ru.restaurant
+
 class Dish(val name: String, val amount: Int, val price: Int, val time: Int) {
     fun dishParse() : Boolean {
         try {
@@ -8,13 +10,13 @@ class Dish(val name: String, val amount: Int, val price: Int, val time: Int) {
             } else {
                 println(
                     coloredMessage(
-                        "Некорректный ввод данных. Повторите попытку.", ConsoleColor.RED
+                        "Wrong data. Please try again.", ConsoleColor.RED
                     )
                 )
                 false
             }
         } catch (e: Exception) {
-            println(coloredMessage("Ошибка: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error: ${e.message}", ConsoleColor.RED))
             return false
         }
     }

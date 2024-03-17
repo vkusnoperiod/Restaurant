@@ -1,11 +1,15 @@
+package ru.restaurant
+
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
 import java.sql.Timestamp
+import java.sql.Statement
+
 
 class Restaurant {
     private val jdbcUrl = "jdbc:mysql://localhost:3306/restaurant" // url вашей БД
-    private val dbUsername = "restaurant"                               // название вашей БД
+    private val dbUsername = "root"                               // название вашей БД
     private val dbPassword = ""                           // пароль вашей БД
 
     private fun getDishPrice(dishName: String): Double {
@@ -22,7 +26,7 @@ class Restaurant {
                 }
             }
         } catch (e: SQLException) {
-            println(coloredMessage("Ошибка при получении цены блюда: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error while getting a dish price: ${e.message}", ConsoleColor.RED))
         }
         return price
     }
@@ -91,7 +95,7 @@ class Restaurant {
                 }
             }
         } catch (e: SQLException) {
-            println(coloredMessage("Ошибка при получении меню: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error while trying to get a menu: ${e.message}", ConsoleColor.RED))
         }
         return menu
     }
@@ -103,23 +107,23 @@ class Restaurant {
                 connection.prepareStatement(sql).use { statement ->
                     val resultSet = statement.executeQuery()
                     var index = 1
-                    println(coloredMessage("\nМеню ресторана:", ConsoleColor.MAGENTA))
+                    println(coloredMessage("\nMenu:", ConsoleColor.CYAN))
                     if (!resultSet.next()) {
-                        println(coloredMessage("\nВ меню пока нет блюд :(", ConsoleColor.YELLOW))
+                        println(coloredMessage("\nThe menu is empty", ConsoleColor.CYAN))
                     } else {
                         do {
                             val name = resultSet.getString("title")
                             val amount = resultSet.getInt("amount")
                             val price = resultSet.getDouble("price")
                             val cookTime = resultSet.getInt("cook_time")
-                            println("$index. $name: количество: $amount, цена: $price, время приготовления: $cookTime мин.")
+                            println("$index. $name: How many: $amount, Price: $price, Time to cook: $cookTime min.")
                             index++
                         } while (resultSet.next())
                     }
                 }
             }
         } catch (e: SQLException) {
-            println(coloredMessage("Ошибка при получении меню: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error while trying to get an order: ${e.message}", ConsoleColor.RED))
         }
     }
 
@@ -148,64 +152,67 @@ class Restaurant {
                 connection.commit()
             }
         } catch (e: SQLException) {
-            println(coloredMessage("Ошибка при отмене заказа: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error while trying to cancel the order: ${e.message}", ConsoleColor.RED))
         }
     }
+fun addOrderToDB(userId: Int, order: Map<String, Int>, status: String): Int {
+    var orderId = -1
+    try {
+        DriverManager.getConnection(jdbcUrl, dbUsername, dbPassword).use { connection ->
+            connection.autoCommit = false
 
-    fun addOrderToDB(userId: Int, order: Map<String, Int>, status: String): Int {
-        var orderId = -1
-        try {
-            DriverManager.getConnection(jdbcUrl, dbUsername, dbPassword).use { connection ->
-                connection.autoCommit = false
+            val totalPrice = calculateTotalPrice(order)
+            val insertOrderSql = "INSERT INTO orders (user_id, total_price, status) VALUES (?, ?, ?)"
+            val orderStatement = connection.prepareStatement(insertOrderSql, Statement.RETURN_GENERATED_KEYS)
+            orderStatement.setInt(1, userId)
+            orderStatement.setDouble(2, totalPrice.toDouble()) // Убедитесь, что тип данных совместим
+            orderStatement.setString(3, status)
+            orderStatement.executeUpdate()
 
-                val totalPrice = calculateTotalPrice(order)
-                val sql = "INSERT INTO orders (user_id, total_price, status) VALUES (?, ?, ?) RETURNING id"
-                val statement = connection.prepareStatement(sql)
-                statement.setInt(1, userId)
-                statement.setDouble(2, totalPrice)
-                statement.setString(3, status)
-                val resultSet = statement.executeQuery()
-                if (resultSet.next()) {
-                    orderId = resultSet.getInt("id")
-                } else {
-                    println(coloredMessage("Ошибка добавления в БД.", ConsoleColor.RED))
-                }
+            val rs = orderStatement.generatedKeys
+            if (rs.next()) {
+                orderId = rs.getInt(1) // Получите сгенерированный ID заказа
+            } else {
+                println("Error while trying to add a dish to database.")
+                return orderId
+            }
 
-                for ((dishName, quantity) in order) {
-                    val currentQuantity = getCurrentQuantity(connection, orderId, dishName)
-                    if (currentQuantity > 0) {
-                        val updateSql = "UPDATE order_items SET quantity = quantity + ? WHERE order_id = ? AND dish_name = ?"
-                        val updateStatement = connection.prepareStatement(updateSql)
+            order.forEach { (dishName, quantity) ->
+                val currentQuantity = getCurrentQuantity(connection, orderId, dishName)
+                if (currentQuantity > 0) {
+                    val updateSql = "UPDATE order_items SET quantity = quantity + ? WHERE order_id = ? AND dish_name = ?"
+                    connection.prepareStatement(updateSql).use { updateStatement ->
                         updateStatement.setInt(1, quantity)
                         updateStatement.setInt(2, orderId)
                         updateStatement.setString(3, dishName)
                         updateStatement.executeUpdate()
-                        updateStatement.close()
-                    } else {
-                        val insertSql = "INSERT INTO order_items (order_id, dish_name, quantity) VALUES (?, ?, ?)"
-                        val insertStatement = connection.prepareStatement(insertSql)
+                    }
+                } else {
+                    val insertSql = "INSERT INTO order_items (order_id, dish_name, quantity) VALUES (?, ?, ?)"
+                    connection.prepareStatement(insertSql).use { insertStatement ->
                         insertStatement.setInt(1, orderId)
                         insertStatement.setString(2, dishName)
                         insertStatement.setInt(3, quantity)
                         insertStatement.executeUpdate()
-                        insertStatement.close()
-
-                        val updateDishSql = "UPDATE dishes SET amount = amount - ? WHERE title = ?"
-                        val updateDishStatement = connection.prepareStatement(updateDishSql)
-                        updateDishStatement.setInt(1, quantity)
-                        updateDishStatement.setString(2, dishName)
-                        updateDishStatement.executeUpdate()
-                        updateDishStatement.close()
                     }
                 }
 
-                connection.commit()
+                // Предполагается, что вы хотите уменьшить количество блюд при добавлении заказа
+                val updateDishSql = "UPDATE dishes SET amount = amount - ? WHERE title = ?"
+                connection.prepareStatement(updateDishSql).use { updateDishStatement ->
+                    updateDishStatement.setInt(1, quantity)
+                    updateDishStatement.setString(2, dishName)
+                    updateDishStatement.executeUpdate()
+                }
             }
-        } catch (e: SQLException) {
-            println("Ошибка при добавлении заказа в БД: ${e.message}")
+
+            connection.commit()
         }
-        return orderId
+    } catch (e: SQLException) {
+        println("Error while trying to add a dish to database: ${e.message}")
     }
+    return orderId
+}
 
     fun saveFeedback(orderId: Int, rating: Int, comment: String) {
         try {
@@ -219,7 +226,7 @@ class Restaurant {
                 statement.executeUpdate()
             }
         } catch (e: SQLException) {
-            println("Ошибка при сохранении отзыва: ${e.message}")
+            println("Error while saving a feedback: ${e.message}")
         }
     }
 
@@ -230,7 +237,7 @@ class Restaurant {
 
                 val orderExists = isOrderExists(connection, orderId)
                 if (!orderExists) {
-                    println(coloredMessage("Заказ с ID $orderId не найден.", ConsoleColor.RED))
+                    println(coloredMessage("Order with $orderId ID  is not found.", ConsoleColor.RED))
                     return
                 }
 
@@ -277,7 +284,7 @@ class Restaurant {
                 connection.commit()
             }
         } catch (e: SQLException) {
-            println(coloredMessage("Ошибка при добавлении блюда в заказ: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error while adding a dish to an order: ${e.message}", ConsoleColor.RED))
         }
     }
 
@@ -294,7 +301,7 @@ class Restaurant {
                 }
             }
         } catch (e: SQLException) {
-            println(coloredMessage("Ошибка при вычислении суммы заказа: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error while summing up an order: ${e.message}", ConsoleColor.RED))
         }
         return totalAmount
     }
@@ -315,7 +322,7 @@ class Restaurant {
                 }
             }
         } catch (e: SQLException) {
-            println(coloredMessage("Ошибка при получении заказов: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error while getting an order: ${e.message}", ConsoleColor.RED))
         }
         return orders
     }
@@ -331,7 +338,7 @@ class Restaurant {
                 return true
             }
         } catch (e: SQLException) {
-            println("Ошибка при обновлении статуса заказа: ${e.message}")
+            println("Error while updating status of an order: ${e.message}")
             return false
         }
     }
@@ -354,7 +361,7 @@ class Restaurant {
                 }
             }
         } catch (e: SQLException) {
-            println(coloredMessage("Ошибка при получении заказов: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error while trying to get an order: ${e.message}", ConsoleColor.RED))
         }
         return orders
     }

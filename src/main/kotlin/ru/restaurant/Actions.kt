@@ -2,28 +2,28 @@ package ru.restaurant
 
 import java.util.*
 
-class Funcs {
+class Actions {
     private val restaurant: Restaurant = Restaurant()
     val user = User()
 
     private fun logOut() : Boolean {
-        println(coloredMessage("\nAre you sure you want to log out?", ConsoleColor.WHITE))
+        println(coloredMessage("\nAre you sure you want to log out?", ConsoleColor.CYAN))
         println("1. Log out")
         println("2. Stay logged in")
 
-        val choice = readValidNumber(coloredMessage("Enter action number: ", ConsoleColor.WHITE))
+        val choice = readValidNumber(coloredMessage("Enter action number: ", ConsoleColor.CYAN))
         when (choice) {
             1 -> {
-                println(coloredMessage("\nLogging out...", ConsoleColor.WHITE))
+                println(coloredMessage("\nLogging out...", ConsoleColor.CYAN))
 
                 return true
             }
             2 -> {
-                println(coloredMessage("\nStaying logged in.", ConsoleColor.WHITE))
-                if(user.userStatus == "Admin" || user.userStatus == "admin") {
+                println(coloredMessage("\nStaying logged in.", ConsoleColor.CYAN))
+                if(user.userStatus.lowercase() == "admin") {
                     adminActions(user)
                 } else {
-                    visitorFuncs(user)
+                    visitorAction(user)
                 }
             }
             else -> {
@@ -35,10 +35,10 @@ class Funcs {
 
 
     fun logIn() : Boolean {
-        println(coloredMessage("\nDo you already have an account? (Yes or No)\nTo exit press Esc.", ConsoleColor.WHITE))
+        println(coloredMessage("\nDo you already have an account? (Yes or No)\nTo exit type in \"Esc\".", ConsoleColor.CYAN))
         var help = true
         while(help) {
-            print(coloredMessage("Your pick: ", ConsoleColor.WHITE))
+            print(coloredMessage("Your pick: ", ConsoleColor.CYAN))
             val answer = readlnOrNull().toString().lowercase(Locale.getDefault())
             when (answer) {
                 "yes" -> {
@@ -65,9 +65,9 @@ class Funcs {
         return true
     }
 
-    fun visitorFuncs(user: User) {
+    fun visitorAction(user: User) {
         while (true) {
-            println(coloredMessage("\nWhat are we doing?", ConsoleColor.BLUE))
+            println(coloredMessage("\nWhat do you want to do?", ConsoleColor.CYAN))
             println("1. Make an order")
             println("2. Pay the order")
             println("3. Add a dish to an order")
@@ -76,11 +76,11 @@ class Funcs {
             println("6. Cancel order")
             println("7. Log out")
 
-            val orderChoice = readValidNumber(coloredMessage("Your pick: ", ConsoleColor.WHITE))
+            val orderChoice = readValidNumber(coloredMessage("Your pick: ", ConsoleColor.CYAN))
             val visitor = Visitor(user, restaurant)
             when (orderChoice) {
                 1 -> {
-                    visitor.makeOrder()
+                    visitor.createOrder()
                 }
                 2 -> {
                     visitor.payOrder()
@@ -110,7 +110,7 @@ class Funcs {
 
     fun adminActions(user: User) {
         while(true) {
-            println(coloredMessage("\nWhat are we doing?", ConsoleColor.BLUE))
+            println(coloredMessage("\nWhat do you want to do?", ConsoleColor.CYAN))
             println("1. Show the menu")
             println("2. Add a new dish")
             println("3. Revenue")
@@ -120,7 +120,7 @@ class Funcs {
             println("7. Reviews")
             println("8. Log out")
 
-            val choice = readValidNumber(coloredMessage("Enter an action number: ", ConsoleColor.BLUE))
+            val choice = readValidNumber(coloredMessage("Enter an action number: ", ConsoleColor.CYAN))
             val admin = Admin(user, restaurant)
             when(choice) {
                 1 -> {

@@ -5,9 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="24f60365-db87-43ee-ac08-bc5e2a537133" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/ru/restaurant/Actions.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Admin.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ru/restaurant/Admin.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Dish.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ru/restaurant/Dish.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Funcs.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ru/restaurant/Main.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Order.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ru/restaurant/Order.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Restaurant.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ru/restaurant/Restaurant.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/User.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ru/restaurant/User.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Visitor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ru/restaurant/Visitor.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -87,8 +95,11 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/main/kotlin" />
     </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/kotlin/ru/restaurant" />
+    </key>
   </component>
-  <component name="RunManager" selected="Gradle.Restaurant [jar]">
+  <component name="RunManager" selected="Kotlin.MainKt">
     <configuration name="Restaurant [jar]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -112,7 +123,7 @@
       <method v="2" />
     </configuration>
     <configuration name="MainKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="MainKt" />
+      <option name="MAIN_CLASS_NAME" value="ru.restaurant.MainKt" />
       <module name="Restaurant.main" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -120,8 +131,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.Restaurant [jar]" />
         <item itemvalue="Kotlin.MainKt" />
+        <item itemvalue="Gradle.Restaurant [jar]" />
       </list>
     </recent_temporary>
   </component>
@@ -140,7 +151,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1710441119813</updated>
-      <workItem from="1710441122144" duration="1033000" />
+      <workItem from="1710441122144" duration="20549000" />
     </task>
     <servers />
   </component>

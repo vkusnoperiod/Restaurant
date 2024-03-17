@@ -1,9 +1,11 @@
+package ru.restaurant
+
 import java.sql.DriverManager
 
 class Admin(val admin: User, val restaurant: Restaurant) {
     private val jdbcUrl = "jdbc:mysql://localhost:3306/restaurant" // url вашей БД
-    private val dbUsername = "restaurant"                               // название вашей БД
-    private val dbPassword = ""                           // пароль вашей БД
+    private val dbUsername = "root"                               // название вашей БД
+    private val dbPassword = ""                              // пароль вашей БД
 
     private fun addToDB(title: String, amount: Int, price: Int, cook_time: Int) : Boolean{
         val sql = "INSERT INTO dishes (title, amount, price, cook_time) VALUES (?, ?, ?, ?)"
@@ -21,7 +23,7 @@ class Admin(val admin: User, val restaurant: Restaurant) {
                 }
             }
         } catch (e: Exception) {
-            println(coloredMessage("Ошибка: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error: ${e.message}", ConsoleColor.RED))
             return false
         }
     }
@@ -41,7 +43,7 @@ class Admin(val admin: User, val restaurant: Restaurant) {
                 }
             }
         } catch (e: Exception) {
-            println("Ошибка: ${e.message}")
+            println("Error: ${e.message}")
         }
         return false
     }
@@ -58,12 +60,12 @@ class Admin(val admin: User, val restaurant: Restaurant) {
                 }
             }
         } catch (e: Exception) {
-            println(coloredMessage("Ошибка при удалении блюда: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error while getting rid of a dish: ${e.message}", ConsoleColor.RED))
         }
         return false
     }
 
-    private fun updateDishInDB(oldName: String, newName: String?, amount: Int?, price: Int?, time: Int?): Boolean {
+    private fun updateDish(oldName: String, newName: String?, amount: Int?, price: Int?, time: Int?): Boolean {
         val connection = DriverManager.getConnection(jdbcUrl, dbUsername, dbPassword)
         try {
             connection.autoCommit = false
@@ -103,7 +105,7 @@ class Admin(val admin: User, val restaurant: Restaurant) {
             return true
         } catch (e: Exception) {
             connection.rollback()
-            println(coloredMessage("Ошибка при обновлении блюда: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error while updating a dish: ${e.message}", ConsoleColor.RED))
             return false
         } finally {
             connection.close()
@@ -119,44 +121,44 @@ class Admin(val admin: User, val restaurant: Restaurant) {
                     val resultSet = statement.executeQuery()
                     if (resultSet.next()) {
                         val revenue = resultSet.getInt("revenue")
-                        print(coloredMessage("\nСумма выручки составила: ", ConsoleColor.BLUE))
-                        println("$revenue руб.")
+                        print(coloredMessage("\nTotal revenue: ", ConsoleColor.BLUE))
+                        println("$revenue rub.")
                     }
                 }
             }
         } catch (e: Exception) {
-            println(coloredMessage("Ошибка при получении выручки: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error while getting a revenue: ${e.message}", ConsoleColor.RED))
         }
     }
 
     fun addDish() : Boolean {
         while(true) {
             try {
-                print(coloredMessage("\nВведите название блюда: ", ConsoleColor.MAGENTA))
+                print(coloredMessage("\nEnter dish name: ", ConsoleColor.CYAN))
                 val dishName = readlnOrNull().toString()
-                val dishAmount = readValidNumber(coloredMessage("Введите количество: ", ConsoleColor.MAGENTA))
-                val price = readValidNumber(coloredMessage("Укажите цену блюда: ", ConsoleColor.MAGENTA))
-                val cookTime = readValidNumber(coloredMessage("Укажите время приготовления (в минутах): ", ConsoleColor.MAGENTA))
+                val dishAmount = readValidNumber(coloredMessage("Quantity: ", ConsoleColor.CYAN))
+                val price = readValidNumber(coloredMessage("Price: ", ConsoleColor.CYAN))
+                val cookTime = readValidNumber(coloredMessage("Cooking time in minutes: ", ConsoleColor.CYAN))
                 val dish = Dish(dishName, dishAmount!!.toInt(), price!!.toInt(), cookTime!!.toInt())
                 return if (dish.dishParse()) {
-                    return if(!admin.DBChek(dishName)) {
+                    return if(!admin.dbRepeatCheck(dishName)) {
                         addToDB(dishName, dishAmount, price, cookTime)
-                        println(coloredMessage("\nБлюдо успешно добавлено!", ConsoleColor.GREEN))
+                        println(coloredMessage("\nDone!", ConsoleColor.GREEN))
                         false
                     } else {
-                        println(coloredMessage("Блюдо с таким названием уже существует.", ConsoleColor.RED))
+                        println(coloredMessage("We dont have a dish with that kind of a name.", ConsoleColor.RED))
                         true
                     }
                 } else {
                     println(
                         coloredMessage(
-                            "Некорректный ввод данных. Повторите попытку.", ConsoleColor.RED
+                            "Wrong data. Please try again.", ConsoleColor.RED
                         )
                     )
                     true
                 }
             } catch (e: Exception) {
-                println(coloredMessage("Ошибка: ${e.message}", ConsoleColor.RED))
+                println(coloredMessage("Error: ${e.message}", ConsoleColor.RED))
                 return true
             }
         }
@@ -167,29 +169,29 @@ class Admin(val admin: User, val restaurant: Restaurant) {
             try {
                 val menu: Map<String, Int> = restaurant.getMenu()
                 if(menu.isEmpty()) {
-                    println(coloredMessage("\nВ меню пока нет блюд :(", ConsoleColor.YELLOW))
+                    println(coloredMessage("\nThe menu is empty", ConsoleColor.CYAN))
                     break
                 }
                 restaurant.showMenu()
-                print(coloredMessage("\nВведите название блюда для редактирования или 'Esc' для выхода: ", ConsoleColor.MAGENTA))
+                print(coloredMessage("\nEnter a dish name to edit or \"Esc\" to exit: ", ConsoleColor.CYAN))
                 val dishName = readlnOrNull().toString()
 
                 if (dishName.equals("Esc", ignoreCase = true)) {
-                    println(coloredMessage("\nРедактирование блюда отменено.", ConsoleColor.WHITE))
+                    println(coloredMessage("\nEdit of a dish aborted.", ConsoleColor.CYAN))
                     break
                 }
 
                 if (!dishCheck(dishName)) {
-                    println(coloredMessage("Блюдо с таким названием не найдено.", ConsoleColor.RED))
+                    println(coloredMessage("We dont have that kind of a dish.", ConsoleColor.RED))
                     continue
                 }
 
-                println(coloredMessage("\nВыберите параметры для редактирования (введите числа через запятую):\n1. Название\n2. Количество\n3. Цена\n4. Время приготовления", ConsoleColor.BLUE))
-                print(coloredMessage("Ваш ввод: ", ConsoleColor.MAGENTA))
+                println(coloredMessage("\nEnter parameters to edit (numbers separated with commas):\n1. Name\n2. Quantity\n3. Price\n4. Time to cook", ConsoleColor.WHITE))
+                print(coloredMessage("Your pick: ", ConsoleColor.CYAN))
                 val choicesInput = readln().split(",").map { it.trim().toIntOrNull() }
 
                 if (choicesInput.isEmpty() || choicesInput.any { it !in 1..4 }) {
-                    println(coloredMessage("Ошибка. Выберите параметры для редактирования (введите числа от 1 до 4).", ConsoleColor.RED))
+                    println(coloredMessage("Error. Enter parameters to edit (enter numbers from 1 to 4).", ConsoleColor.RED))
                     continue
                 }
 
@@ -201,27 +203,27 @@ class Admin(val admin: User, val restaurant: Restaurant) {
                 var newCookTime: Int? = null
 
                 if (choices.contains(1)) {
-                    print(coloredMessage("Введите новое название блюда: ", ConsoleColor.MAGENTA))
+                    print(coloredMessage("Name of a dish: ", ConsoleColor.CYAN))
                     newName = readlnOrNull()
                 }
                 if (choices.contains(2)) {
-                    newAmount = readValidNumber(coloredMessage("Введите новое количество: ", ConsoleColor.MAGENTA))
+                    newAmount = readValidNumber(coloredMessage("How many: ", ConsoleColor.CYAN))
                 }
                 if (choices.contains(3)) {
-                    newPrice = readValidNumber(coloredMessage("Введите новую цену блюда: ", ConsoleColor.MAGENTA))
+                    newPrice = readValidNumber(coloredMessage("Dish price: ", ConsoleColor.CYAN))
                 }
                 if (choices.contains(4)) {
-                    newCookTime = readValidNumber(coloredMessage("Введите новое время приготовления (в минутах): ", ConsoleColor.MAGENTA))
+                    newCookTime = readValidNumber(coloredMessage("Time to cook: ", ConsoleColor.CYAN))
                 }
 
-                if (updateDishInDB(dishName, newName, newAmount, newPrice, newCookTime)) {
-                    println(coloredMessage("\nБлюдо успешно обновлено!", ConsoleColor.GREEN))
+                if (updateDish(dishName, newName, newAmount, newPrice, newCookTime)) {
+                    println(coloredMessage("\nDish is updated!", ConsoleColor.CYAN))
                     break
                 } else {
-                    println(coloredMessage("\nОшибка при обновлении блюда.", ConsoleColor.RED))
+                    println(coloredMessage("\nError updating a dish occurred.", ConsoleColor.RED))
                 }
             } catch (e: Exception) {
-                println(coloredMessage("Ошибка: ${e.message}", ConsoleColor.RED))
+                println(coloredMessage("Error: ${e.message}", ConsoleColor.RED))
             }
         }
     }
@@ -231,34 +233,34 @@ class Admin(val admin: User, val restaurant: Restaurant) {
             try {
                 val menu: Map<String, Int> = restaurant.getMenu()
                 if(menu.isEmpty()) {
-                    println(coloredMessage("\nВ меню пока нет блюд :(", ConsoleColor.YELLOW))
+                    println(coloredMessage("\nThe menu is empty", ConsoleColor.CYAN))
                     break
                 }
                 restaurant.showMenu()
-                print(coloredMessage("\nВведите название блюда для удаления или 'Esc' для выхода: ", ConsoleColor.MAGENTA))
+                print(coloredMessage("\nEnter a dish name to delete or \"Esc\" to exit: ", ConsoleColor.CYAN))
                 val userInput = readlnOrNull()?.toString() ?: continue
 
                 if (userInput.equals("Esc", ignoreCase = true)) {
-                    println(coloredMessage("\nУдаление блюда отменено.", ConsoleColor.WHITE))
+                    println(coloredMessage("\nDeleting is aborted.", ConsoleColor.CYAN))
                     return
                 }
 
                 if (dishCheck(userInput)) {
                     if (deleteFromDB(userInput)) {
-                        println(coloredMessage("\nБлюдо успешно удалено из меню.", ConsoleColor.GREEN))
+                        println(coloredMessage("\nDish is deleted.", ConsoleColor.GREEN))
                         break
                     } else {
-                        println(coloredMessage("Ошибка. Блюдо с таким названием не найдено.", ConsoleColor.RED))
+                        println(coloredMessage("Error. Dish is not found.", ConsoleColor.RED))
                     }
                 } else {
                     println(
                         coloredMessage(
-                            "Некорректный ввод данных. Повторите попытку.", ConsoleColor.RED
+                            "Wrong data. Please try again.", ConsoleColor.RED
                         )
                     )
                 }
             } catch (e: Exception) {
-                println(coloredMessage("Ошибка: ${e.message}", ConsoleColor.RED))
+                println(coloredMessage("Error: ${e.message}", ConsoleColor.RED))
             }
         }
     }
@@ -271,22 +273,22 @@ class Admin(val admin: User, val restaurant: Restaurant) {
                     val resultSet = statement.executeQuery()
                     var count = 1
                     if (!resultSet.isBeforeFirst) {
-                        println(coloredMessage("\nПользователи еще не оставили отзывы :(", ConsoleColor.YELLOW))
+                        println(coloredMessage("\nNo feedbacks yet.", ConsoleColor.CYAN))
                     } else {
-                        println(coloredMessage("\nОтзывы: ", ConsoleColor.BLUE))
+                        println(coloredMessage("\nFeedbacks: ", ConsoleColor.CYAN))
                         while (resultSet.next()) {
                             val feedbackId = resultSet.getInt("id")
                             val orderId = resultSet.getInt("order_id")
                             val rating = resultSet.getInt("rating")
                             val feedbackText = resultSet.getString("comment")
-                            println("$count. Отзыв #$feedbackId от заказа с ID $orderId: оценка: $rating | комментарий: $feedbackText")
+                            println("$count. Feedback #$feedbackId on order with ID $orderId: Rate: $rating | Comment: $feedbackText")
                             count++
                         }
                     }
                 }
             }
         } catch (e: Exception) {
-            println(coloredMessage("Ошибка при получении отзывов: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error getting feedbacks occurred: ${e.message}", ConsoleColor.RED))
         }
     }
 
@@ -297,8 +299,8 @@ class Admin(val admin: User, val restaurant: Restaurant) {
                 connection.prepareStatement(sql).use { statement ->
                     val resultSet = statement.executeQuery()
                     var count = 1
-                    println(coloredMessage("\nПользователи в системе: ", ConsoleColor.BLUE))
-                    println("Имя пользователя | Статус")
+                    println(coloredMessage("\nUsers: ", ConsoleColor.BLUE))
+                    println("User | Status")
                     while (resultSet.next()) {
                         val username = resultSet.getString("username")
                         val status = resultSet.getString("status")
@@ -308,7 +310,7 @@ class Admin(val admin: User, val restaurant: Restaurant) {
                 }
             }
         } catch (e: Exception) {
-            println(coloredMessage("Ошибка при получении пользователей: ${e.message}", ConsoleColor.RED))
+            println(coloredMessage("Error getting users occurred: ${e.message}", ConsoleColor.RED))
         }
     }
 }

@@ -1,3 +1,5 @@
+package ru.restaurant
+
 enum class ConsoleColor {
     BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, RESET
 }
@@ -33,14 +35,14 @@ fun readValidNumber(prompt: String): Int? {
 
 fun main() {
     var running = true
-    val func = Funcs()
-    func.logIn()
+    val actions = Actions()
+    actions.logIn()
     while (running) {
-        if (func.user.userStatus == "Admin" || func.user.userStatus == "admin") {
-            func.adminFuncs(func.user)
-        } else if (func.user.userStatus == "Visitor" || func.user.userStatus == "visitor") {
-            func.visitorFuncs(func.user)
+        if (actions.user.userStatus.lowercase()== "admin") {
+            actions.adminActions(actions.user)
+        } else if (actions.user.userStatus.lowercase()=="visitor") {
+            actions.visitorAction(actions.user)
         }
-        running = func.logIn()
+        running = actions.logIn()
     }
 }
